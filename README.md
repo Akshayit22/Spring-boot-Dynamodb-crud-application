@@ -1,9 +1,10 @@
-### Spring-boot-Dynamodb-crud-application 
+# Spring-boot-Dynamodb-crud-application 
 
-# single table design with two entities
+## single table design with two entities
 
-command to create Dyanamo db tables:
+### command to create Dyanamo db tables:
 
+```
 aws dynamodb create-table \
     --table-name YourTableName \
     --attribute-definitions \
@@ -13,10 +14,10 @@ aws dynamodb create-table \
         AttributeName=PK,KeyType=HASH \
         AttributeName=SK,KeyType=RANGE \
     --billing-mode PAY_PER_REQUEST
+```
 
 
-
-# Installation steps:
+### Installation steps:
      > mvn install 
      > run jar file
-     > access api's http://localhost:8080/swagger-ui/index.html
+     > access api's at http://localhost:8080/swagger-ui/index.html
