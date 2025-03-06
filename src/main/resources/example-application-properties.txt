@@ -4,8 +4,8 @@ aws.dynamodb.secret-key=asas
 aws.dynamodb.region=us-east-100
 aws.dynamodb.endpoint=dynamodb.us-east-1.amazonaws.com
 
-springdoc.api-docs.path=/api-docs
-springdoc.swagger-ui.path=/api-docs/index.html
+springdoc.swagger-ui.path=/index.html
 springdoc.swagger-ui.operations-sorter=alpha
 
 # http://localhost:8080/api-docs/swagger-ui/index.html
+# http://localhost:8080/swagger-ui/index.html
