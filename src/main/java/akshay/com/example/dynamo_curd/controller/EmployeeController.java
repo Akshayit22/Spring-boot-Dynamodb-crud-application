@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import akshay.com.example.dynamo_curd.dto.EmployeeDTO;
-import akshay.com.example.dynamo_curd.dto.ResponseDTO;
+import akshay.com.example.dynamo_curd.entity.Employee;
+import akshay.com.example.dynamo_curd.service.AddressService;
 import akshay.com.example.dynamo_curd.service.EmployeeService;
 
 import java.util.List;
@@ -17,29 +18,33 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final AddressService addressService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
+    public ResponseEntity<List<Employee>> getAllEmployees() {
         return new ResponseEntity<>(employeeService.getAllEmployees(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> getEmployee(@PathVariable("id") String id) {
-        return new ResponseEntity<>(employeeService.getEmployee(id), HttpStatus.OK);
+    public ResponseEntity<Employee> getEmployee(@PathVariable("id") String id) {
+        return new ResponseEntity<>(employeeService.getEmployeeById(id), HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDTO<EmployeeDTO>> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
+    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
         return new ResponseEntity<>(employeeService.saveEmployee(employeeDTO), HttpStatus.CREATED);
     }
 
-    @PatchMapping
-    public ResponseEntity<ResponseDTO<EmployeeDTO>> updateEmployee(@RequestBody EmployeeDTO employeeDTO) {
-        return new ResponseEntity<>(employeeService.updateEmployee(employeeDTO), HttpStatus.OK);
+    @DeleteMapping("/{id}")
+    public HttpStatus deleteEmployee(@PathVariable("id") String id){
+        employeeService.deleteEmployeeById(id);
+        return HttpStatus.OK;
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDTO<EmployeeDTO>> deleteEmployee(@PathVariable("id") String id) {
-        return new ResponseEntity<>(employeeService.deleteEmployee(id), HttpStatus.OK);
+    @DeleteMapping("/{employeeId}/addresses/{addressId}")
+    public HttpStatus deleteAddress(@PathVariable String employeeId, @PathVariable String addressId) {
+        addressService.deleteAddress(employeeId, addressId);
+        return HttpStatus.OK;
     }
+
 }

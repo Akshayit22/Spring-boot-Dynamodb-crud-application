@@ -3,16 +3,15 @@ package akshay.com.example.dynamo_curd.service;
 import java.util.List;
 
 import akshay.com.example.dynamo_curd.dto.EmployeeDTO;
-import akshay.com.example.dynamo_curd.dto.ResponseDTO;
+import akshay.com.example.dynamo_curd.entity.Employee;
 
 public interface EmployeeService {
-    ResponseDTO<EmployeeDTO> saveEmployee(EmployeeDTO employeeDTO);
+    EmployeeDTO saveEmployee(EmployeeDTO employeeDTO);
 
-    List<EmployeeDTO> getAllEmployees();
+    List<Employee> getAllEmployees();
 
-    EmployeeDTO getEmployee(String id);
+    void deleteEmployeeById(String employeeId);
 
-    ResponseDTO<EmployeeDTO> updateEmployee(EmployeeDTO employeeDTO);
+    Employee getEmployeeById(String employeeId);
 
-    ResponseDTO<EmployeeDTO> deleteEmployee(String id);
 }

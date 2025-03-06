@@ -1,33 +1,31 @@
-// package akshay.com.example.dynamo_curd.controller;
+package akshay.com.example.dynamo_curd.controller;
 
-// import akshay.com.example.dynamo_curd.dto.ResponseDTO;
-// import akshay.com.example.dynamo_curd.entity.Address;
-// import akshay.com.example.dynamo_curd.entity.Employee;
-// import akshay.com.example.dynamo_curd.service.AddressService;
-// import akshay.com.example.dynamo_curd.service.EmployeeService;
-// import lombok.RequiredArgsConstructor;
-// import org.springframework.web.bind.annotation.*;
+import akshay.com.example.dynamo_curd.dto.AddressDTO;
+import akshay.com.example.dynamo_curd.entity.Address;
+import akshay.com.example.dynamo_curd.service.AddressService;
+import lombok.RequiredArgsConstructor;
+import java.util.List;
 
-// @RestController
-// @RequestMapping("/api/address")
-// @RequiredArgsConstructor
-// public class AddressController {
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-//     private final AddressService addressService;
+
+@RestController
+@RequestMapping("/api/address")
+@RequiredArgsConstructor
+public class AddressController {
+
+    private final AddressService addressService;
 //     private final EmployeeService employeeService;
 
-//     @PostMapping("/add")
-//     public ResponseDTO<Address> addAddress(@RequestBody Address address) {
-//         return addressService.saveAddress(address);
-//     }
+    @PostMapping("/add")
+    public Address addAddress(@RequestBody AddressDTO addressDTO) {
+        return addressService.addAddress(addressDTO);
+    }
 
-//     @PutMapping("/update")
-//     public ResponseDTO<Address> updateAddress(@RequestBody Address address) {
-//         return addressService.updateAddress(address);
-//     }
-
-//     // @GetMapping("/employee/details/{id}")
-//     // public ResponseDTO<Employee> getEmployeeDetails(@PathVariable String id) {
-//     //     return employeeService.getEmployeeWithAddress(id);
-//     // }
-// }
+    @GetMapping("/{employeeId}/addresses")
+    public ResponseEntity<List<Address>> getAllAddresses(@PathVariable String employeeId) {
+        List<Address> addresses = addressService.getAllAddresses(employeeId);
+        return ResponseEntity.ok(addresses);
+    }
+}

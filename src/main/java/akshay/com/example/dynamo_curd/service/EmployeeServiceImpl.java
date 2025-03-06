@@ -1,110 +1,80 @@
+
 package akshay.com.example.dynamo_curd.service;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-
 import akshay.com.example.dynamo_curd.dto.EmployeeDTO;
-import akshay.com.example.dynamo_curd.dto.ResponseDTO;
-// import akshay.com.example.dynamo_curd.entity.Address;
+
 import akshay.com.example.dynamo_curd.entity.Employee;
-import akshay.com.example.dynamo_curd.exception.EmployeeException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final DynamoDBMapper dynamoDBMapper;
 
-    @Override
-    public ResponseDTO<EmployeeDTO> saveEmployee(EmployeeDTO employeeDTO) {
-        log.info("employeeDTO => {}", employeeDTO);
+    public EmployeeServiceImpl(DynamoDBMapper dynamoDBMapper) {
+        this.dynamoDBMapper = dynamoDBMapper;
+    }
+
+    public EmployeeDTO saveEmployee(EmployeeDTO employeeDTO) {
         if (ObjectUtils.isEmpty(employeeDTO)) {
-            throw new EmployeeException("Employee details cannot be null");
+            throw new IllegalArgumentException("Employee details cannot be null");
         }
-        Employee employee = new Employee(employeeDTO.id(), employeeDTO.name(), employeeDTO.monthlySalary(),
-                employeeDTO.birthDate(), employeeDTO.phone(), employeeDTO.email(), employeeDTO.isMarried());
+        String uniqueId = UUID.randomUUID().toString();
+
+        Employee employee = new Employee(
+                "EMP#" + uniqueId, // pk
+                "EMP#" + uniqueId, // sk
+                employeeDTO.name(),
+                employeeDTO.monthlySalary(),
+                employeeDTO.birthDate(),
+                employeeDTO.phone(),
+                employeeDTO.email(),
+                employeeDTO.isMarried());
         dynamoDBMapper.save(employee);
-        return new ResponseDTO<>("Employee created successfully",
-                new EmployeeDTO(employee.getId(), employee.getName(), employee.getMonthlySalary(),
-                        employee.getBirthDate(), employee.getPhone(), employee.getEmail(), employee.getIsMarried()));
+        return employeeDTO;
     }
 
-    @Override
-    public List<EmployeeDTO> getAllEmployees() {
-        List<Employee> employeeList = dynamoDBMapper.scan(Employee.class, new DynamoDBScanExpression());
-        log.info("Employee list count => {}", employeeList.size());
-        return employeeList.stream().map(e -> new EmployeeDTO(e.getId(), e.getName(), e.getMonthlySalary(),
-                e.getBirthDate(), e.getPhone(), e.getEmail(), e.getIsMarried())).collect(Collectors.toList());
+    public List<Employee> getAllEmployees() {
+        return dynamoDBMapper.scan(Employee.class, new DynamoDBScanExpression());
     }
 
-    @Override
-    public EmployeeDTO getEmployee(String id) {
-        log.info("Employee id => {}", id);
-        if (!StringUtils.hasLength(id)) {
-            throw new EmployeeException("Employee id cannot be null");
+    public Employee getEmployeeById(String employeeId) {
+        if (!StringUtils.hasLength(employeeId)) {
+            throw new IllegalArgumentException("Employee ID cannot be null or empty");
         }
-        Employee employee = dynamoDBMapper.load(Employee.class, id);
-        return new EmployeeDTO(employee.getId(), employee.getName(), employee.getMonthlySalary(),
-                employee.getBirthDate(), employee.getPhone(), employee.getEmail(), employee.getIsMarried());
+
+        String partitionKey = "EMP#" + employeeId;
+        String sortKey = partitionKey;
+
+        return dynamoDBMapper.load(Employee.class, partitionKey, sortKey);
     }
 
-    @Override
-    public ResponseDTO<EmployeeDTO> updateEmployee(EmployeeDTO employeeDTO) {
-        log.info("employeeDTO => {}", employeeDTO);
-        if (ObjectUtils.isEmpty(employeeDTO)) {
-            throw new EmployeeException("Employee details cannot be null");
+    public void deleteEmployeeById(String employeeId) {
+        if (!StringUtils.hasLength(employeeId)) {
+            throw new IllegalArgumentException("Employee ID cannot be null or empty");
         }
-        Employee employee = new Employee(employeeDTO.id(), employeeDTO.name(), employeeDTO.monthlySalary(),
-                employeeDTO.birthDate(), employeeDTO.phone(), employeeDTO.email(), employeeDTO.isMarried());
-        dynamoDBMapper.save(employee, buildExpression(employee));
-        return new ResponseDTO<>("Employee updated successfully",
-                new EmployeeDTO(employee.getId(), employee.getName(), employee.getMonthlySalary(),
-                        employee.getBirthDate(), employee.getPhone(), employee.getEmail(), employee.getIsMarried()));
-    }
 
-    @Override
-    public ResponseDTO<EmployeeDTO> deleteEmployee(String id) {
-        log.info("Employee id => {}", id);
-        if (!StringUtils.hasLength(id)) {
-            throw new EmployeeException("Employee id cannot be null");
-        }
-        Employee employee = dynamoDBMapper.load(Employee.class, id);
-        if (ObjectUtils.isEmpty(employee)) {
-            throw new EmployeeException("No data found");
-        }
-        dynamoDBMapper.delete(employee);
-        return new ResponseDTO<>("Employee deleted successfully", null);
-    }
+        String partitionKey = "EMP#" + employeeId;
 
-    private DynamoDBSaveExpression buildExpression(Employee employee) {
-        DynamoDBSaveExpression dynamoDBSaveExpression = new DynamoDBSaveExpression();
-        Map<String, ExpectedAttributeValue> expectedAttributeValueMap = new HashMap<>();
-        expectedAttributeValueMap.put("id", new ExpectedAttributeValue(new AttributeValue().withS(employee.getId())));
-        dynamoDBSaveExpression.setExpected(expectedAttributeValueMap);
-        return dynamoDBSaveExpression;
-    }
+        Employee keyObject = new Employee();
+        keyObject.setPk(partitionKey);
 
-    // public ResponseDTO<Employee> getEmployeeWithAddress(String id) {
-    //     Employee employee = dynamoDBMapper.load(Employee.class, id);
-    //     Address address = dynamoDBMapper.load(Address.class, id);
-    //     if (employee != null) {
-    //         employee.setAddress(address);
-    //     }
-    //     return new ResponseDTO<>("Employee details fetched successfully", employee);
-    // }
+        DynamoDBQueryExpression<Employee> queryExpression = new DynamoDBQueryExpression<Employee>()
+                .withHashKeyValues(keyObject);
+
+        List<Employee> itemsToDelete = dynamoDBMapper.query(Employee.class, queryExpression);
+
+        dynamoDBMapper.batchDelete(itemsToDelete);
+    }
 
 }
